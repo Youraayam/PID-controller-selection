@@ -113,9 +113,25 @@ D = K_s * D_d * (1/2) * 100
 print(D)
 if (0.0 < D < 1.0):
     print('Proportional controller')
+    Xp = 0.9 * K_s * D_d * 100
+    print('Xp- proportional band is {}'.format(Xp))
+    Kp = 1/Xp
+    print('Kp- proportional gain is {}'.format(Kp))
+    Ti = 2.5* Td
+    print('Ti- integral time reset time is {}'.format(Ti))
+    TD = 0.5 * Td
+    print('TD- derivation time is {}'.format(TD))
 
 elif (1.0 < D < 2.5):
     print('Proportional integral controller')
+    Xp = 0.9 * K_s * D_d * 100
+    print('Xp- proportional band is {}'.format(Xp))
+    Kp = 1/Xp
+    print('Kp- proportional gain is {}'.format(Kp))
+    Ti = 2.5* Td
+    print('Ti- integral time reset time is {}'.format(Ti))
+    TD = 0.5 * Td
+    print('TD- derivation time is {}'.format(TD))
 
 elif (2.5 < D < 5):
     print('Proportional integral derivative controller is selection for which')
