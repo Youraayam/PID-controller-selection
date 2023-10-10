@@ -1,5 +1,3 @@
-# PID-controller-selection
-This was work performed during the lab which is the completion of the energy analysis of the district heating rig
 # -*- coding: utf-8 -*-
 """
 Created on Thu Oct  5 12:51:40 2023
@@ -13,6 +11,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt 
 from scipy.optimize import curve_fit
 from matplotlib import pyplot
+from scipy import integrate
 
 control = pd.read_csv('control.csv',encoding='latin1')
 
@@ -113,25 +112,9 @@ D = K_s * D_d * (1/2) * 100
 print(D)
 if (0.0 < D < 1.0):
     print('Proportional controller')
-    Xp = 0.9 * K_s * D_d * 100
-    print('Xp- proportional band is {}'.format(Xp))
-    Kp = 1/Xp
-    print('Kp- proportional gain is {}'.format(Kp))
-    Ti = 2.5* Td
-    print('Ti- integral time reset time is {}'.format(Ti))
-    TD = 0.5 * Td
-    print('TD- derivation time is {}'.format(TD))
 
 elif (1.0 < D < 2.5):
     print('Proportional integral controller')
-    Xp = 0.9 * K_s * D_d * 100
-    print('Xp- proportional band is {}'.format(Xp))
-    Kp = 1/Xp
-    print('Kp- proportional gain is {}'.format(Kp))
-    Ti = 2.5* Td
-    print('Ti- integral time reset time is {}'.format(Ti))
-    TD = 0.5 * Td
-    print('TD- derivation time is {}'.format(TD))
 
 elif (2.5 < D < 5):
     print('Proportional integral derivative controller is selection for which')
@@ -152,28 +135,119 @@ else:
 controller = control['Y223']
 serialnumber =control['SN']
 Power =control['EO8']
+Temp = control['T80']
 
 fig, ax = plt.subplots(figsize = (10, 5))
-plt.title('Time series plot of temperature and power')
+plt.title('Time series plot of valve opening,power and temperature')
  
+twin1 = ax.twinx()
+twin2 = ax.twinx()
 
-ax2 = ax.twinx()
-ax.plot(serialnumber, controller, color = 'g')
-ax2.plot(serialnumber, Power, color = 'b')
- 
+twin2.spines.right.set_position(("axes", 1.2))
+
+
+p1= ax.plot(serialnumber, controller, color = 'g')
+p2= twin1.plot(serialnumber, Power, color = 'b')
+p3= twin2.plot(serialnumber, Temp, color = 'r') 
+
+
+
 
 ax.set_xlabel('Time (secs)', color = 'r')
 
 ax.set_ylabel('valve change %', color = 'g')
+twin1.set_ylabel('Power (KW)', color = 'b')
+twin2.set_ylabel('Temperature (°C)', color = 'r')
  
-ax2.set_ylabel('Power (KW)', color = 'b')
- 
+
+
+
+
  
 plt.tight_layout()
  
 
 plt.grid()
 plt.show()
+
+
+
+
+#Controller action 
+print('Proportional integral derivative controller is selection for which')
+Xp = 0.9 * K_s * D_d * 100
+print('Xp- proportional band is {}'.format(Xp))
+Kp = 1/Xp
+print('Kp- proportional gain is {}'.format(Kp))
+Ti = 2.5* Td
+print('Ti- integral time reset time is {}'.format(Ti))
+TD = 0.5 * Td
+print('TD- derivation time is {}'.format(TD))
+
+
+a = control_df = pd.read_csv('control.csv',encoding='latin1')
+time = 1 
+
+integral = 0 
+
+time_prev = 0
+
+e_prev = 0 
+
+N = 5
+h = np.zeros(N)
+å = np.zeros(N) 
+æ = np.zeros(N)
+
+
+
+
+wu = []
+MVu = []
+
+P_ = []
+I_ = []
+D_ = []
+
+for i in range (400, 1050, 1):
+        Kp = np.Kp = 0.17429193899782142
+        Ti = 60.0
+        TD = 12.0
+        Ki = Kp/Ti
+        Kd = Kp* TD
+        e = 28 - a.loc[i,'T80']
+        print(e)
+        P = Kp*e 
+        print(P)
+        integral_n = integral + Ki * e 
+        print(integral_n)
+        D = Kd * (e - e_prev) 
+        print(D)
+        MV = P + integral + D 
+        #print(MV)
+        #print('ok')
+        e_prev = e 
+        integral = integral_n
+        MVu.append(MV)
+        P_.append(P)
+        I_.append(integral)
+        D_.append(D)
+
+
+plt.figure(figsize=(15, 5))
+plt.plot(MVu,'r--')
+plt.plot(P_,'g--')
+plt.plot(I_,'b--')
+plt.plot(D_,'y--')
+
+
+plt.xlabel('Time (secs)')
+plt.ylabel('Output signal u(t)')
+plt.legend(['Total out put signal u(t)','P','I','D'])
+
+plt.grid()
+plt.show() 
+
 
 
 
